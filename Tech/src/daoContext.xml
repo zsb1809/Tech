@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+    <bean id="ttdataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+      <property name="url" value="${jdbc_url}" />
+      <property name="username" value="${jdbc_user}" />
+      <property name="password" value="${jdbc_password}" />
+
+      <property name="maxActive" value="20" />
+      <property name="initialSize" value="1" />
+      <property name="maxWait" value="60000" />
+      <property name="minIdle" value="1" />
+      <property name="timeBetweenEvictionRunsMillis" value="60000" />
+      <property name="minEvictableIdleTimeMillis" value="300000" />
+      <property name="testWhileIdle" value="true" />
+      <property name="testOnBorrow" value="false" />
+      <property name="testOnReturn" value="false" />
+      <property name="poolPreparedStatements" value="true" />
+      <property name="maxOpenPreparedStatements" value="20" />
+      
+      <property name="filters" value="stat"/>
+  	</bean>
+  	
+  	
+  	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="ttdataSource" />
+	</bean>
+	
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="ttdataSource"/>
+        <property name="hibernateProperties">
+        
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+            </props>
+            
+        </property>
+        <property name="packagesToScan">  
+            <list>  
+                <value>com.zhihua.tt.entity</value>  
+            </list>  
+        </property>  
+    </bean>
+      
+    <bean id="hibernateTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">  
+        <property name="sessionFactory" ref="sessionFactory" />  
+    </bean>
+
+	
+	
+	<!-- 数据库事务配置 -->
+	
+	
+	<bean id="txManager"  
+  
+        class="org.springframework.orm.hibernate5.HibernateTransactionManager">  
+  
+        <property name="sessionFactory" ref="sessionFactory" />  
+  
+    </bean>  
+  
+     
+
+   <!--  <aop:config>  
+  
+         execution(public * *.*.*..*.*(..)) 为自己项目中操作数据库中的方法  
+  
+       <aop:pointcut id="opePointcut" expression="execution(* com.zhihua.tt.service..*Service.*(..))" />
+        <aop:advisor pointcut-ref="opePointcut"  advice-ref="txAdvice" />  
+  
+    </aop:config>  
+
+   
+  
+    <tx:advice id="txAdvice" transaction-manager="txManager">  
+  
+        <tx:attributes>  
+  
+             name 为 方法名  
+  
+            <tx:method name="**" read-only="true" />  
+  
+            <tx:method name="**" propagation="REQUIRED"/>  
+  
+        </tx:attributes>  
+  
+    </tx:advice>  
+	 -->
+	
+	<tx:annotation-driven transaction-manager="txManager"/>  
+	
+
+</beans>
